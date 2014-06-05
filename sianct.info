@@ -1,0 +1,9 @@
+// Sidora Analysis API for CameraTrap
+// file: sianct.info
+// author: Gert Schmeltz Pedersen gertsp45@gmail.com
+
+name = sianct
+description = Sidora Analysis API for CameraTrap
+package = sianct
+version = 6.1dev
+core = 6.x

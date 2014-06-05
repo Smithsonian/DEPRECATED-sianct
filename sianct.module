@@ -1,0 +1,162 @@
+<?php
+
+// Sidora Analysis API for CameraTrap
+// file: sianct.module
+// author: Gert Schmeltz Pedersen gertsp45@gmail.com
+
+	function sianct_init() {
+//    drupal_set_message(t('sianct_init'));
+		drupal_add_css(drupal_get_path('module', 'sianct').'/sianct.css');
+		drupal_add_js(drupal_get_path('module', 'sianct').'/sianct.js');
+	}
+   
+	function sianct_perm() {
+		return array('Sidora Analysis API for CameraTrap', 'Administer sianct');
+	}
+   
+
+	function sianct_menu() {
+		$items = array();
+		$items['sianct'] = array(
+			'page callback' => 'sianct',
+			'access arguments' => array('Sidora Analysis API for CameraTrap'),
+			'type' => MENU_CALLBACK,
+		);
+		$items['admin/settings/sianct'] = array(
+			'title' => 'sianct Settings',
+			'description' => 'sianct Settings',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('sianct_settings'),
+			'access arguments' => array('Administer sianct'),
+		);
+		return $items;
+	}
+
+	function sianct_block($op = 'list', $delta = 0, $edit = array()) {
+		switch ($op) {
+			case 'list':
+				$blocks[0] = array(
+				'info' => t('sianct Block'),
+				);
+				return $blocks;
+			case 'configure':
+				$form = array();
+				switch ($delta) {
+					case 0:
+						$form['sianct_block_fedora']=array(
+							'#type' => 'textfield',
+							'#title' => t('The url of fedora'),
+							'#size' => 75,
+							'#description' => t('The url of fedora. Used to fetch the observation tables to get the species names.'),
+							'#default_value' => variable_get('sianct_block_fedora', t('http://127.0.0.1:8080/fedora')),
+						);
+						$form['sianct_block_fedora_userpass']=array(
+							'#type' => 'textfield',
+							'#title' => t('The username:password at fedora'),
+							'#size' => 75,
+							'#description' => t('The username:password at fedora.'),
+							'#default_value' => variable_get('sianct_block_fedora_userpass', t('sianctuseroffedora:sianctuseroffedorapassword')),
+						);
+						$form['sianct_block_gsearch']=array(
+							'#type' => 'textfield',
+							'#title' => t('The url of gsearch'),
+							'#size' => 75,
+							'#description' => t('The url of gsearch.'),
+							'#default_value' => variable_get('sianct_block_gsearch', t('http://127.0.0.1:8080/fedoragsearch/rest')),
+						);
+						$form['sianct_block_solr']=array(
+							'#type' => 'textfield',
+							'#title' => t('The url of the solr server'),
+							'#size' => 75,
+							'#description' => t('The url of the solr server.'),
+							'#default_value' => variable_get('sianct_block_solr', t('http://127.0.0.1:8080/solr/gsearch_solr')),
+						);
+						$form['sianct_block_solr_max']=array(
+							'#type' => 'textfield',
+							'#title' => t('The maximum number of rows in the solr query results'),
+							'#size' => 10,
+							'#description' => t('The maximum number of rows in the solr query results.'),
+							'#default_value' => variable_get('sianct_block_solr_max', t('1000')),
+						);
+						$form['sianct_block_solr_xslt_tree']=array(
+							'#type' => 'textfield',
+							'#title' => t('The default stylesheet file name for the project tree structure'),
+							'#size' => 75,
+							'#description' => t('The default stylesheet file name for the project tree structure.'),
+							'#default_value' => variable_get('sianct_block_solr_xslt_tree', t('sianctProjectStructureToHtml.xslt')),
+						);
+						$form['sianct_block_solr_xslt_filtered']=array(
+							'#type' => 'textfield',
+							'#title' => t('The default stylesheet file name for the filtered observation tables'),
+							'#size' => 75,
+							'#description' => t('The default stylesheet file name for the filtered observation tables.'),
+							'#default_value' => variable_get('sianct_block_solr_xslt_filtered', t('sianctObstablesToHtml.xslt')),
+						);
+						break;
+				}
+				return $form;
+			case 'save':
+				switch ($delta) {
+					case 0:
+						variable_set('sianct_block_fedora', $edit['sianct_block_fedora']);
+						variable_set('sianct_block_fedora_userpass', $edit['sianct_block_fedora_userpass']);
+						variable_set('sianct_block_gsearch', $edit['sianct_block_gsearch']);
+						variable_set('sianct_block_solr', $edit['sianct_block_solr']);
+						variable_set('sianct_block_solr_max', $edit['sianct_block_solr_max']);
+						variable_set('sianct_block_solr_xslt_tree', $edit['sianct_block_solr_xslt_tree']);
+						variable_set('sianct_block_solr_xslt_filtered', $edit['sianct_block_solr_xslt_filtered']);
+						break;
+				}
+			case 'view': default:
+				case 0:
+					$block['subject'] = t('Sidora Analysis API for CameraTrap block');
+					$block['content'] = sianct_get_block();
+					break;
+		}
+		return $block;
+	}
+
+	function sianct_theme() {
+		return array(
+			'sianct_block_form' => array(
+				'arguments' => array (
+				'form' => NULL,
+				),
+			),
+		);
+	}
+
+	function sianct_get_block() {
+		global $user;
+	 	$datestamp = date('Y-m-d H:i:s');
+ 		$logdatestamp = date('Y-m-d');
+		$logfp = fopen('/tmp/sianct-' . $logdatestamp . '.log', 'a');
+		fwrite($logfp, "\n\n[$datestamp] $user->name sianctBlock.html");
+		fclose($logfp);
+		return file_get_contents(drupal_get_path('module', 'sianct') . '/sianctBlock.html');
+	}
+
+	function sianct($op, $arg1=null, $arg2=null, $arg3=null, $arg4=null, $arg5=null, $arg6=null, $arg7=null, $arg8=null, $arg9=null, $arg10=null) {
+		module_load_include('inc', 'sianct', 'SIANCT');
+		$sianctClass = new SIANCT();
+		if ($op == 'sianctGetProjectStructure') {
+			$workflowResult = $sianctClass->sianctGetProjectStructure($arg1, $arg2);
+			return $workflowResult;
+		}
+		if ($op == 'sianctGetCsvWithProjectStructure') {
+			$workflowResult = $sianctClass->sianctGetCsvWithProjectStructure($arg1);
+			return $workflowResult;
+		}
+		if ($op == 'sianctGetSpecies') {
+			$workflowResult = $sianctClass->sianctGetSpecies($_POST['pids']);
+			return $workflowResult;
+		}
+		if ($op == 'sianctSelectObstables') {
+			$workflowResult = $sianctClass->sianctSelectObstables($arg1, $arg2, $arg3, $arg4, $arg5, $arg6, $arg7, $arg8, $arg9, $arg10);
+			return $workflowResult;
+		}
+	}
+
+	function sianct_settings() { 
+		return system_settings_form($form); 
+	}

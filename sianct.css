@@ -1,0 +1,159 @@
+/* Demo of Sidora Analysis for CameraTrap
+   file: sianct.css
+   author: Gert Schmeltz Pedersen gertsp45@gmail.com
+*/
+
+	#sianctMainArea {
+		float: left;
+		width: 95%;
+		padding: 0px;
+		margin: 0px;
+		background-color: #eeeeff;
+	}
+	
+	#sianctLeftColumnArea {
+		float: left;
+		width: 45%;
+		background-color: #eeee11;
+		padding: 0px;
+		margin: 0px;
+	}
+	
+	#sianctRightColumnArea {
+		float: right;
+		width: 55%;
+		background-color: #eeeeff;
+		padding: 0px;
+		margin: 0px;
+	}
+	
+	#sianctSelectionsArea {
+		width: 100%;
+		padding: 0px;
+		margin: 0px;
+	}
+	
+	#sianctMapArea {
+		width: 100%;
+		padding: 0px;
+		margin: 0px;
+	}
+	
+	#sianctStatusDiv {
+		width: 100%;
+		padding: 0px;
+		margin: 0px;
+		background-color: #eeeeff;
+		clear: both;
+	}
+	
+	#sianctStatusArea {
+		width: 90%;
+		color: black;
+		font-size: 80%;
+		font-style: normal;
+		padding: 0px 0px 20px 20px;
+		margin: 0px;
+	}
+	
+	#sianctBottomArea {
+		width: 95%;
+		color: black;
+		background-color: #eeeedd;
+		font-size: 80%;
+		font-style: normal;
+		padding: 20px;
+		margin: 0px;
+		clear: both;
+	}
+	
+	.sianctProjectItem {
+		color: blue;
+		font-size: 120%;
+		font-style: bold;
+		padding: 5px;
+		margin: 0px 0px 0px 25px;
+	}
+	
+	.sianctCtplotItem {
+		color: brown;
+		font-size: 100%;
+		font-style: italic;
+		padding: 5px;
+		margin: 0px 0px 0px 40px;
+	}
+	
+	.sianctDeploymentItem {
+		color: green;
+		font-size: 80%;
+		font-style: normal;
+		padding: 5px;
+		margin: 0px 0px 0px 55px;
+	}
+	
+	.sianctHeader {
+		clear: both;
+		color: blue;
+		font-size: 150%;
+		font-style: bold;
+		padding: 15px;
+		margin: 10px 10px 10px 10px;
+	}
+	
+	.sianctLabel {
+		color: brown;
+		font-size: 110%;
+		font-style: normal;
+		padding: 15px;
+		margin: 10px 10px 10px 10px;
+	}
+	
+	.sianctSubLabel {
+		color: brown;
+		font-size: 90%;
+		font-style: normal;
+		padding: 0px;
+		margin: 0px 0px 0px 30px;
+	}
+	
+	.sianctSelect {
+		padding: 5px;
+		margin: 0px 0px 0px 32px;
+	}
+	
+	#sianctBoundingBoxTable {
+		width: 90%; 
+		float: right; 
+		border: 1px solid black; 
+		margin: 3px 3px 15px 3px;
+		color: brown;
+		font-size: 80%;
+		font-style: italic;
+	}
+	
+	#sianctBeginEndTable {
+		width: 90%; 
+		float: right; 
+		border: 1px solid black; 
+		margin: 3px 3px 15px 3px;
+		color: brown;
+		font-size: 80%;
+		font-style: italic;
+	}
+	
+	#sianctResultButton {
+		color: brown;
+		font-size: 120%;
+		font-style: bold;
+		padding: 50px;
+		margin: 0px 0px 0px 25px;
+	}
+	
+	#sianctButtons {
+		float: right; 
+		margin: 10px 25px 10px 25px;
+	}
+	
+	#sianctSelectSpecies {
+		clear: both;
+	}

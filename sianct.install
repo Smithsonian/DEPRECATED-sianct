@@ -1,0 +1,12 @@
+<?php
+
+// Sidora Analysis API for CameraTrap
+// file: sianct.install
+// author: Gert Schmeltz Pedersen gertsp45@gmail.com
+
+/**
+ * Implementation of hook_enable()
+ * Check for and install objects if necessary.
+ */
+function sianct_enable() {
+}
