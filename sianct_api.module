@@ -30,13 +30,17 @@ function sianct_api_menu() {
 }
 
 /**
- * Implements hook_perm().
- * NOTE: This is D6, hook_permission is D7.
+ * Implements hook_permission().
  *
- * @see hook_perm
+ * @see hook_permission().
  */
-function sianct_api_perm() {
-  return array('administer sianct_api');
+function sianct_api_permission() {
+  return array(
+    'administer sianct_api' => array(
+      'title' => t('Administer SIANCT API'),
+      'description' => t('Set SIANCT API location, App ID, and Key information.')
+    )
+  );
 }
 
 /**
