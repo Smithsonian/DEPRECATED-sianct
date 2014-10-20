@@ -1,0 +1,9 @@
+; Sidora Analysis API Library
+; file: sianct_api.info
+; author: Michael Schall
+
+name = sianct_api
+description = Provides an EDAN-style signed request API common to all SIANCT modules
+package = sianct
+version = 6.1dev
+core = 6.x

@@ -1,0 +1,225 @@
+<?php
+
+/**
+ * Common API for the SIANCT Family of modules.
+ *
+ * @version 0.1-beta
+ * @file sianct_api.module
+ * @author Michael Schall
+ */
+
+// Toggles signed requests on and off, default to FALSE (for requiring signed requests).
+define('SIANCTAPI_TRUSTED_REQUEST', FALSE);
+
+/**
+ * Implements hook_menu().
+ *
+ * @see hook_menu
+ */
+function sianct_api_menu() {
+  $items = array();
+  $items['admin/settings/sianct_api'] = array(
+    'title' => 'SIANCT API module settings',
+    'description' => 'Manage the AppID, Key and Location of SIANCT API',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sianct_api_admin'),
+    'access arguments' => array('administer sianct_api'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+  return $items;
+}
+
+/**
+ * Implements hook_perm().
+ * NOTE: This is D6, hook_permission is D7.
+ *
+ * @see hook_perm
+ */
+function sianct_api_perm() {
+  return array('administer sianct_api');
+}
+
+/**
+ * Based on hook_form().
+ *
+ * @see hook_form().
+ */
+function sianct_api_admin() {
+  $form = array();
+
+  $form['sianct_api'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'SIANCT API',
+  );
+  $form['sianct_api']['sianct_api_host'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Host'),
+    '#size' => 75,
+    '#description' => t('The server (hostname) where the SIANCT API can be accessed.'),
+    '#default_value' => variable_get('sianct_api_host', 'localhost'),
+  );
+  $form['sianct_api']['sianct_api_app_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('App ID'),
+    '#size' => 75,
+    '#description' => t('The App ID assigned to your application.'),
+    '#default_value' => variable_get('sianct_api_app_id', ''),
+  );
+  $form['sianct_api']['sianct_api_secretkey'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Key'),
+    '#size' => 75,
+    '#description' => t('The secret key assigned to your application.'),
+    '#default_value' => variable_get('sianct_api_secretkey', ''),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implaments hook_form_validate().
+ *
+ * @see hook_form_validate().
+ */
+function sianct_api_admin_validate($form, &$form_state) {
+  if (empty($form_state['values']['sianct_api_host'])) {
+    form_set_error('sianct_api_host', t('You must enter a URI for the API host.'));
+  }
+}
+
+//-- API Methods used by other modules
+
+/**
+ * Perform a curl request
+ * @param uri a URI- ready string of parameters to pass to the API
+ * @param service The service name you are curling {metadataService,tagService,collectService}
+ * @param POST boolean, defaults to false; on true $uri sent CURLOPT_POSTFIELDS
+ * @param opts array, can containing misc controls, commonly $opts['download']
+ */
+function _sianct_api_send_request($service, $uri = '', $POST = FALSE, $opts = array()) {
+  $ch = curl_init();
+
+  if (empty($service) || !is_string($uri)) {
+    drupal_set_header($_p . ' 502 Bad Gateway');
+    watchdog('sianct_api', 'Missing service endpoint or invalid uri.');
+    exit();
+  }
+
+  $server = variable_get('sianct_api_host', 'localhost');
+
+  if ($POST === TRUE) {
+    curl_setopt($ch, CURLOPT_URL, $server . '/' . $service);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, ($uri));
+  } else {
+    curl_setopt($ch, CURLOPT_URL, $server . '/' . $service . '?' . ($uri));
+  }
+
+  curl_setopt($ch, CURLOPT_HEADER, 0);
+  $enc = '';
+  if (SIANCTAPI_TRUSTED_REQUEST !== TRUE) {
+    $enc = _sianct_api_encode_header($uri);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $enc);
+  }
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
+
+  $response = curl_exec($ch);
+  $info = curl_getinfo($ch);
+
+  // Debug
+  /**
+  echo '<p>Error: ';
+  var_dump( curl_error($ch) );
+
+  echo '<p>Server: ';
+  var_dump($server);
+
+  echo '<p>Service: ';
+  var_dump($service);
+
+  echo '<p>URI: ';
+  var_dump($uri);
+
+  echo '<p>URI - Encode: ';
+  var_dump($enc);
+
+  echo '<p>INFO: ';
+  var_dump($info);
+
+  echo '<p>Response: ';
+  var_dump($response);
+
+  exit('###');
+  /**/
+
+  curl_close($ch);
+
+  if ($info['http_code'] != 200) {
+    $_p = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0');
+    drupal_set_header($_p . ' 502 Bad Gateway');
+    watchdog('sianct_api', var_export($info, TRUE));
+    exit();
+  }
+
+  if (isset($opts['forcedownload']['mimetype']) && isset($opts['forcedownload']['filename'])) {
+    header('Content-type: ' . $opts['forcedownload']['mimetype']);
+    header('Content-Disposition: attachment; filename="' . $opts['forcedownload']['filename'] . '"');
+  }
+
+  echo $response;
+  exit();
+}
+
+/**
+ * Generates signed headers for a request.
+ *
+ * @return array
+ */
+function _sianct_api_encode_header($uri) {
+  $ipnonce = _sianct_api_get_nonce();
+  $app_id = variable_get('sianct_api_app_id', '');
+  $key = variable_get('sianct_api_secretkey', '');
+  $date = date('Y-m-d H:i:s');
+
+  $auth = "{$ipnonce}\n{$uri}\n{$date}\n{$key}";
+
+  $content = base64_encode(sha1($auth));
+
+  return array(
+    "X-AppId:{$app_id}",
+    "X-RequestDate: {$date}",
+    "X-Nonce: {$ipnonce}",
+    "X-AuthContent: {$content}"
+    );
+}
+
+/**
+ * Generates a nonce.
+ *
+ * @param int $length
+ *   (optional) Int representing the length of the random string.
+ * @param string $prefix
+ *   (optional) String containing a prefix to be prepended to the random string.
+ *
+ * @return string
+ *   Returns a string containing a randomized set of letters and numbers $length long
+ *   with $prefix prepended.
+ */
+function _sianct_api_get_nonce($length = 15, $prefix = '') {
+  $password = "";
+  $possible = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+  $i = 0;
+
+  while ($i < $length) {
+    $char = substr($possible, mt_rand(0, strlen($possible) - 1), 1);
+
+    if (!strstr($password, $char)) {
+      $password .= $char;
+      $i++;
+    }
+  }
+
+  return $prefix . $password;
+}
