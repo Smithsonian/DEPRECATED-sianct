@@ -171,6 +171,10 @@ function _sianct_api_send_request($service, $uri = '', $POST = FALSE, $opts = ar
     header('Content-Disposition: attachment; filename="' . $opts['forcedownload']['filename'] . '"');
   }
 
+  if (isset($opts['noexit']) && $opts['noexit'] === TRUE) {
+    return $response;
+  }
+
   echo $response;
   exit();
 }
@@ -186,7 +190,9 @@ function _sianct_api_encode_header($uri) {
   $key = variable_get('sianct_api_secretkey', '');
   $date = date('Y-m-d H:i:s');
 
-  $auth = "{$ipnonce}\n{$uri}\n{$date}\n{$key}";
+  $uri2 = urldecode($uri); // URI should be encoded first, so decode before signing
+
+  $auth = "{$ipnonce}\n{$urii2}\n{$date}\n{$key}";
 
   $content = base64_encode(sha1($auth));
 
