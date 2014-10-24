@@ -7,3 +7,5 @@ description = Provides an EDAN-style signed request API common to all SIANCT mod
 package = sianct
 version = 7.1-dev
 core = 7.x
+
+configure = admin/settings/sianct_api

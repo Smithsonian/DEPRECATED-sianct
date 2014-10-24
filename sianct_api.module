@@ -18,7 +18,7 @@ define('SIANCTAPI_TRUSTED_REQUEST', FALSE);
  */
 function sianct_api_menu() {
   $items = array();
-  $items['admin/settings/sianct_api'] = array(
+  $items['admin/config/services/sianct_api'] = array(
     'title' => 'SIANCT API module settings',
     'description' => 'Manage the AppID, Key and Location of SIANCT API',
     'page callback' => 'drupal_get_form',
@@ -161,8 +161,11 @@ function _sianct_api_send_request($service, $uri = '', $POST = FALSE, $opts = ar
 
   if ($info['http_code'] != 200) {
     $_p = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0');
-    drupal_set_header($_p . ' 502 Bad Gateway');
+    if (!isset($opts['noexit']) || $opts['noexit'] !== TRUE) {
+      drupal_add_http_header($_p, '502 Bad Gateway');
+    }
     watchdog('sianct_api', var_export($info, TRUE));
+    #watchdog('sianct_api', var_export($response, TRUE));
     exit();
   }
 
@@ -172,7 +175,7 @@ function _sianct_api_send_request($service, $uri = '', $POST = FALSE, $opts = ar
   }
 
   if (isset($opts['noexit']) && $opts['noexit'] === TRUE) {
-    return $response;
+    return $response . 'ddd';
   }
 
   echo $response;
@@ -192,7 +195,7 @@ function _sianct_api_encode_header($uri) {
 
   $uri2 = urldecode($uri); // URI should be encoded first, so decode before signing
 
-  $auth = "{$ipnonce}\n{$urii2}\n{$date}\n{$key}";
+  $auth = "{$ipnonce}\n{$uri2}\n{$date}\n{$key}";
 
   $content = base64_encode(sha1($auth));
 
